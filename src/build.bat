@@ -1,7 +1,7 @@
 @echo off
-rem Builds ..\library\TwoscilloscopeP5.jar from twoscilloscopeP5\*.java and the
-rem Hershey fonts. Set CORE_JAR to Processing's core.jar (and JAVA_HOME to its
-rem JDK) if they aren't in the default install folder.
+rem Builds ..\library\TwoscilloscopeP5.jar from twoscilloscopeP5\*.java, the
+rem Hershey fonts and the beam shader. Set CORE_JAR to Processing's core.jar
+rem (and JAVA_HOME to its JDK) if they aren't in the default install folder.
 
 setlocal
 cd /d "%~dp0"
@@ -31,9 +31,11 @@ if defined JAVA_HOME set "JAR=%JAVA_HOME%\bin\jar"
 echo core: %CORE_JAR%
 if exist build\classes rmdir /s /q build\classes
 mkdir build\classes\twoscilloscopeP5\hershey_fonts
+mkdir build\classes\twoscilloscopeP5\shaders
 if not exist ..\library mkdir ..\library
 "%JAVAC%" --release 17 -encoding UTF-8 -cp "%CORE_JAR%" -d build\classes twoscilloscopeP5\*.java || exit /b 1
 copy /y twoscilloscopeP5\hershey_fonts\* build\classes\twoscilloscopeP5\hershey_fonts\ > nul
+copy /y twoscilloscopeP5\shaders\* build\classes\twoscilloscopeP5\shaders\ > nul
 "%JAR%" cfm ..\library\TwoscilloscopeP5.jar build\manifest.txt -C build\classes . || exit /b 1
 rmdir /s /q build\classes
 echo built ..\library\TwoscilloscopeP5.jar

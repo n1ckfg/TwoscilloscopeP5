@@ -18,9 +18,9 @@ import java.nio.IntBuffer;
  * Oscilloscope), this is what gives the image its glow and persistence.</p>
  * <p>Differences from the original:</p>
  * <ul>
- * <li>The shader is built into the class and compiled by Processing's PShader, so it runs
- *     wherever P2D and P3D do, instead of being hot-loaded from
- *     bin/data/shaders/osci.vert/.frag.</li>
+ * <li>The shader is built into the library jar (twoscilloscopeP5/shaders/osci.vert/.frag)
+ *     and loaded by Processing's PShader, which translates it for the OpenGL version P2D and
+ *     P3D are running on, instead of being hot-loaded from bin/data/shaders.</li>
  * <li>Points are in scope units (-1..1). draw() uses the PGraphics's current matrix, where
  *     the original passed in its own view matrix.</li>
  * <li>The mesh goes to the GPU in one vertex buffer and one draw call, through Processing's
@@ -34,61 +34,11 @@ public class OsciMesh {
 
   // The beam: the light a gaussian spot leaves as it sweeps along one
   // segment, integrated analytically with erf (after m1el's woscope).
-  // vUvl.x runs along the segment, vUvl.y across it, vUvl.z is its length.
-  // Normalized so a beam that stands still peaks at 1.
-  static final String[] VERT = {
-    "uniform mat4 uMatrix;",
-    "attribute vec2 aPosition;",
-    "attribute vec4 aBeam;",
-    "varying vec3 vUvl;",
-    "varying float vBright;",
-    "void main() {",
-    "  vUvl = aBeam.xyz;",
-    "  vBright = aBeam.w;",
-    "  gl_Position = uMatrix * vec4(aPosition, 0.0, 1.0);",
-    "}"
-  };
-
-  static final String[] FRAG = {
-    "#ifdef GL_ES",
-    "#ifdef GL_FRAGMENT_PRECISION_HIGH",
-    "precision highp float;",
-    "#else",
-    "precision mediump float;",
-    "#endif",
-    "#endif",
-    "#define SQRT2 1.4142135623730951",
-    "#define TAUR 2.5066282746310002",
-    "uniform float uSize;",
-    "uniform float uIntensity;",
-    "uniform vec3 uRgb;",
-    "varying vec3 vUvl;",
-    "varying float vBright;",
-    // approximates the error function, needed for the gaussian integral
-    "float erfApprox(float x) {",
-    "  float s = sign(x), a = abs(x);",
-    "  x = 1.0 + (0.278393 + (0.230389 + 0.000972 * a + 0.078108 * a * a) * a) * a;",
-    "  x *= x;",
-    "  return s - s / (x * x);",
-    "}",
-    "void main() {",
-    "  float len = vUvl.z;",
-    "  vec2 xy = vUvl.xy;",
-    "  float sigma = uSize / 3.0;",
-    "  float b;",
-    "  if (len < 1E-6) {",
-    // too short to integrate, the intensity at the position
-    "    b = exp(-dot(xy, xy) / (2.0 * sigma * sigma));",
-    "  } else {",
-    "    b = erfApprox(xy.x / SQRT2 / sigma) - erfApprox((xy.x - len) / SQRT2 / sigma);",
-    "    b *= exp(-xy.y * xy.y / (2.0 * sigma * sigma)) * sigma * TAUR / (2.0 * len);",
-    "  }",
-    "  b *= vBright * uIntensity;",
-    // where the beam is brightest it burns towards white
-    "  vec3 col = uRgb * b + vec3(max(b - 1.0, 0.0) * 0.35);",
-    "  gl_FragColor = vec4(col, 1.0);",
-    "}"
-  };
+  // It's loaded from URLs because only then does PShader preprocess it,
+  // adding the #version line and translating attribute/varying/gl_FragColor.
+  // A core profile OpenGL, which is all macOS offers, won't compile it without.
+  static final String VERT = "shaders/osci.vert";
+  static final String FRAG = "shaders/osci.frag";
 
   static final float EPS = 1E-6f;
   static final int FLOATS_PER_VERTEX = 6; // x, y, along, across, length, brightness
@@ -190,7 +140,10 @@ public class OsciMesh {
   boolean loadShader(PGraphics g) {
     shaderTried = true;
     try {
-      shader = new PShader(g.parent, VERT, FRAG);
+      shader = new PShader(g.parent, OsciMesh.class.getResource(VERT), OsciMesh.class.getResource(FRAG));
+      // PShader compiles on the first bind(), so do that here where a failure is caught
+      shader.bind();
+      shader.unbind();
     } catch (Exception e) {
       System.err.println("OsciMesh: couldn't compile the beam shader: " + e.getMessage());
       shader = null;

@@ -1,8 +1,8 @@
 #!/bin/bash
-# Builds ../library/TwoscilloscopeP5.jar from twoscilloscopeP5/*.java and the
-# Hershey fonts, and with --docs, the javadoc in ../reference. Finds Processing's
-# core.jar and JDK on Linux and macOS; set CORE_JAR (and JAVA_HOME) to point at
-# them yourself if it can't.
+# Builds ../library/TwoscilloscopeP5.jar from twoscilloscopeP5/*.java, the
+# Hershey fonts and the beam shader, and with --docs, the javadoc in
+# ../reference. Finds Processing's core.jar and JDK on Linux and macOS; set
+# CORE_JAR (and JAVA_HOME) to point at them yourself if it can't.
 
 set -e
 cd "$(dirname "${BASH_SOURCE[0]}")"
@@ -38,9 +38,10 @@ echo "core: $CORE_JAR"
 echo "javac: $JAVAC"
 
 rm -rf build/classes
-mkdir -p build/classes/twoscilloscopeP5/hershey_fonts ../library
+mkdir -p build/classes/twoscilloscopeP5/hershey_fonts build/classes/twoscilloscopeP5/shaders ../library
 "$JAVAC" --release 17 -encoding UTF-8 -Xlint:unchecked -cp "$CORE_JAR" -d build/classes twoscilloscopeP5/*.java
 cp twoscilloscopeP5/hershey_fonts/* build/classes/twoscilloscopeP5/hershey_fonts/
+cp twoscilloscopeP5/shaders/* build/classes/twoscilloscopeP5/shaders/
 "$JAR" cfm ../library/TwoscilloscopeP5.jar build/manifest.txt -C build/classes .
 rm -rf build/classes
 echo "built ../library/TwoscilloscopeP5.jar"
