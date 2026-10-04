@@ -7,3 +7,4 @@ examples/*/XYscope_*.wav
 examples/*/export_*.wav
 examples/*/shapes_*.svg
 examples/*/transformed_*
+examples/*/data/test.latk

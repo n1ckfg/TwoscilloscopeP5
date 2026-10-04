@@ -187,6 +187,11 @@ class Mirror extends XYEffect {
   shape decoded from that audio. Pick sources with `1`-`4` (or draw in the first panel),
   solo effects with `e`, tweak them in the panel, and press `a` to feed the result back in
   for another generation. `s` saves SVG, `w` saves WAV.
+* **LatkScope**: a 3D [Latk](https://github.com/LightningArtist/latkProcessing) animation,
+  seen through a PeasyCam camera, is encoded frame by frame as XYscope audio, run through
+  the effects and drawn back as the beam or as decoded strokes, each in its stroke's colour.
+  `l` switches between those and the original lines, and the panel, `e` and `n` work as in
+  Transform. Needs the Latk for Processing and PeasyCam libraries.
 
 Without a sound card the examples keep running silently, on the clock.
 
@@ -207,7 +212,9 @@ effects and beam meshes, to within float rounding. What changed is the plumbing:
   written to the sketch folder, Processing's habit, rather than to `bin/data`.
 * The beam renderer draws its mesh with one vertex buffer through Processing's low-level
   PGL, as the addon's `ofMesh` did, so `Oscilloscope` needs a P2D or P3D sketch.
-* The Transform example builds its own small effect panel in place of ofxGui.
+* The Transform and LatkScope examples build their own small effect panel in place of
+  ofxGui, and LatkScope uses PeasyCam in place of ofEasyCam. example-latk is called
+  LatkScope here because a sketch named Latk would hide latkProcessing's `Latk` class.
 
 The addon's own [differences from the originals](https://github.com/n1ckfg/ofxTwoscilloscope#differences-from-the-originals)
 still apply: Minim is gone, Z goes out as a third channel, XYscope keeps its own transform
